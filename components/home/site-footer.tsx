@@ -2,7 +2,7 @@ import Link from "next/link"
 
 export function SiteFooter() {
   return (
-    <footer className="border-t border-border px-6 py-14">
+    <footer className="border-t border-border px-6 pb-14 pt-20">
       <p className="text-center text-lg text-muted-foreground">
         {"Ya somos más de "}
         <span className="font-bold text-foreground">{"3.482"}</span>

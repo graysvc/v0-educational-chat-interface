@@ -20,7 +20,7 @@ const paths = [
     icon: PenLine,
     tag: "PRACTICAR",
     text: "Escribí tu primera pregunta y probá.",
-    label: "Empezar a practicar",
+    label: "Empezar",
     href: "/chat",
   },
 ]
