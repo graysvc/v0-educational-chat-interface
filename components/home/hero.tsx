@@ -2,27 +2,21 @@ import Link from "next/link"
 
 export function Hero() {
   return (
-    <section className="flex flex-col items-center px-6 pb-12 pt-16 text-center md:pb-16 md:pt-20">
+    <section className="flex flex-col items-center px-6 pb-14 pt-16 text-center md:pb-20 md:pt-24">
       <h1 className="max-w-2xl text-balance text-3xl font-medium leading-snug text-foreground md:text-5xl md:leading-tight">
-        Este es el espacio para practicar con Inteligencia Artificial.
+        Bienvenido a un espacio de práctica
       </h1>
 
-      <p className="mt-5 max-w-lg text-pretty text-lg leading-relaxed text-muted-foreground md:text-xl">
-        {"Podés escribir lo que quieras. No hay respuestas correctas o incorrectas."}
+      <p className="mt-6 max-w-lg text-pretty text-lg leading-relaxed text-muted-foreground md:text-xl md:leading-relaxed">
+        {"Practicá con inteligencia artificial de forma simple y segura."}
       </p>
 
-      <div className="mt-10 flex flex-col items-center gap-4 sm:flex-row">
+      <div className="mt-12">
         <Link
           href="/chat"
-          className="inline-flex h-12 items-center rounded-xl bg-primary px-8 text-base font-semibold text-primary-foreground transition-opacity hover:opacity-90 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          className="inline-flex h-14 items-center rounded-xl bg-primary px-10 text-lg font-semibold text-primary-foreground shadow-sm transition-all hover:opacity-90 hover:shadow-md focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
         >
           Empezar a practicar
-        </Link>
-        <Link
-          href="/videos"
-          className="inline-flex h-12 items-center rounded-xl border border-border bg-card px-8 text-base font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-        >
-          Ver videos
         </Link>
       </div>
     </section>
