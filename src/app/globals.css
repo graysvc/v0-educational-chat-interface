@@ -1,0 +1,66 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+}
+
+@layer base {
+  :root {
+    --background: 30 20% 97%;
+    --foreground: 30 10% 12%;
+    --card: 30 20% 99%;
+    --card-foreground: 30 10% 12%;
+    --popover: 30 20% 99%;
+    --popover-foreground: 30 10% 12%;
+    --primary: 207 22% 31%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 30 12% 93%;
+    --secondary-foreground: 207 22% 31%;
+    --muted: 30 10% 93%;
+    --muted-foreground: 30 6% 38%;
+    --accent: 30 12% 90%;
+    --accent-foreground: 207 22% 31%;
+    --destructive: 0 60% 50%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 30 12% 88%;
+    --input: 30 12% 88%;
+    --ring: 207 22% 31%;
+    --radius: 0.625rem;
+    --sidebar-background: 30 20% 97%;
+    --sidebar-foreground: 30 10% 12%;
+    --sidebar-primary: 207 22% 31%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 30 12% 93%;
+    --sidebar-accent-foreground: 207 22% 31%;
+    --sidebar-border: 30 12% 88%;
+    --sidebar-ring: 207 22% 31%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-size: 18px;
+    font-weight: 400;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-weight: 500;
+  }
+  p {
+    line-height: 1.7;
+  }
+}
