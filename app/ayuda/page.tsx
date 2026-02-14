@@ -1,5 +1,6 @@
 import Link from "next/link"
 import type { Metadata } from "next"
+import { ArrowLeft } from "lucide-react"
 import { SiteHeader } from "@/components/home/site-header"
 import { SiteFooter } from "@/components/home/site-footer"
 
@@ -45,6 +46,13 @@ export default function AyudaPage() {
       <SiteHeader />
       <main className="flex-1 px-6 py-16 md:py-24">
         <div className="mx-auto max-w-2xl">
+          <Link
+            href="/"
+            className="mb-12 flex items-center gap-2 text-base text-muted-foreground transition-colors hover:text-foreground"
+          >
+            <ArrowLeft className="h-4 w-4" aria-hidden="true" />
+            Volver al inicio
+          </Link>
           <p className="text-center text-sm font-semibold tracking-widest uppercase text-muted-foreground">
             Ayuda
           </p>
