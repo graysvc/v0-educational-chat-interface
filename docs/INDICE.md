@@ -8,7 +8,8 @@ docs/
 ├── chat/
 │   ├── api-openai.md      ← API route, proxy a OpenAI, seguridad de la key
 │   ├── streaming.md       ← Cliente SSE, parseo de chunks, buffer
-│   └── estado-chat.md     ← useChat hook, reducer, mensajes, system prompt
+│   ├── estado-chat.md     ← useChat hook, reducer, mensajes, system prompt
+│   └── ventana-contexto.md ← Sliding window de contexto (8 msgs / 1500 tokens)
 ├── session/
 │   └── estado-sesion.md   ← useSession hook, reducer, localStorage, expiracion, toast
 └── database/
@@ -25,6 +26,7 @@ docs/
 | [API OpenAI](chat/api-openai.md) | Route handler que hace proxy a OpenAI con streaming SSE. Seguridad de la API key. Formato de request/response. | `app/api/chat/route.ts` |
 | [Streaming SSE](chat/streaming.md) | Cliente que consume el stream SSE desde el browser. Parseo con buffer, manejo de event boundaries, callbacks. | `features/chat/api/stream.ts` |
 | [Estado del Chat](chat/estado-chat.md) | Hook `useChat`, reducer de estados, manejo de mensajes con `useRef`, factory `createMessage`, system prompt. | `features/chat/model/use-chat.ts`, `features/chat/model/chat-reducer.ts`, `entities/message/helpers.ts`, `shared/config/system-prompt.ts` |
+| [Ventana de Contexto](chat/ventana-contexto.md) | Sliding window que limita mensajes enviados a OpenAI (ultimos 8 mensajes / 1500 tokens). Tokenizador `gpt-tokenizer`. | `features/chat/model/truncate-history.ts`, `shared/config/constants.ts` |
 
 ## Session
 

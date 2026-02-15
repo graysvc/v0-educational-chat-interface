@@ -5,6 +5,7 @@ import type { Message } from "@/entities/message";
 import { createMessage } from "@/entities/message";
 import { streamChat } from "../api/stream";
 import { chatReducer, initialChatState } from "./chat-reducer";
+import { truncateHistory } from "./truncate-history";
 
 export function useChat() {
   const [state, dispatch] = useReducer(chatReducer, initialChatState);
@@ -25,7 +26,7 @@ export function useChat() {
     let assistantId: string | null = null;
 
     await streamChat({
-      messages: updatedMessages,
+      messages: truncateHistory(updatedMessages),
       code,
       onChunk: (text) => {
         dispatch({ type: "CHUNK", text });

@@ -23,3 +23,9 @@ export const TABLES = {
 
 /** Session timeout in milliseconds (12 hours) */
 export const SESSION_TIMEOUT_MS = 12 * 60 * 60 * 1000;
+
+/** Max messages in context window sent to OpenAI */
+export const MAX_CONTEXT_MESSAGES = 8;
+
+/** Max tokens in context window sent to OpenAI */
+export const MAX_CONTEXT_TOKENS = 1500;
