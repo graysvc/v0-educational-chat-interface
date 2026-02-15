@@ -1,1 +1,1 @@
-export type { Session, SessionStatus } from "./types";
+export type { Session, SessionRow, SessionStatus } from "./types";

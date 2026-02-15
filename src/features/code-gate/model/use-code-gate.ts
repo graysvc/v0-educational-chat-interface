@@ -2,10 +2,9 @@
 
 import { useReducer, useCallback, useEffect } from "react";
 import { codeGateReducer, initialCodeGateState } from "./code-gate-reducer";
+import { validateCode } from "../api";
 
 const STORAGE_KEY = "guido-code";
-// TODO: Replace with server-side validation against Supabase
-const TEMP_VALID_CODE = "AB232A";
 
 export function useCodeGate() {
   const [state, dispatch] = useReducer(codeGateReducer, initialCodeGateState);
@@ -19,12 +18,14 @@ export function useCodeGate() {
 
   const submitCode = useCallback(async (code: string) => {
     dispatch({ type: "SUBMIT", code });
-    // TODO: Validate code against Supabase
-    if (code.toUpperCase() === TEMP_VALID_CODE) {
-      localStorage.setItem(STORAGE_KEY, code);
-      dispatch({ type: "VALID", code });
+
+    const result = await validateCode(code);
+    if (result.valid) {
+      const normalized = code.toUpperCase().trim();
+      localStorage.setItem(STORAGE_KEY, normalized);
+      dispatch({ type: "VALID", code: normalized });
     } else {
-      dispatch({ type: "INVALID", error: "Código incorrecto. Revisá e intentá de nuevo." });
+      dispatch({ type: "INVALID", error: result.error! });
     }
   }, []);
 

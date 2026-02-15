@@ -21,5 +21,5 @@ export const TABLES = {
   SURVEY_RESPONSES: "survey_responses",
 } as const;
 
-/** Session timeout in milliseconds (30 minutes) */
-export const SESSION_TIMEOUT_MS = 30 * 60 * 1000;
+/** Session timeout in milliseconds (12 hours) */
+export const SESSION_TIMEOUT_MS = 12 * 60 * 60 * 1000;

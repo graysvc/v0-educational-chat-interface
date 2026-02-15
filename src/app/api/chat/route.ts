@@ -1,12 +1,106 @@
 import { NextRequest } from "next/server";
+import { OPENAI_MODEL, MAX_TOKENS, SYSTEM_PROMPT, TABLES } from "@/shared/config";
+import { supabase } from "@/shared/api";
+import { updateSessionTokens } from "@/features/session/api";
 
 export async function POST(req: NextRequest) {
-  // TODO: Validate code and check monthly usage limit (300 msgs/month)
-  // TODO: Fetch to OpenAI with stream: true
-  // TODO: Return ReadableStream as SSE
-  // TODO: Intercept chunks for token counting + semantic classification
+  const apiKey = process.env.OPENAI_API_KEY;
+  if (!apiKey) {
+    return new Response("Missing API key", { status: 500 });
+  }
 
   const { messages, code } = await req.json();
 
-  return new Response("Not implemented", { status: 501 });
+  if (!code || typeof code !== "string") {
+    return new Response("Code required", { status: 401 });
+  }
+
+  const { data, error } = await supabase
+    .from(TABLES.CODES)
+    .select("code")
+    .eq("code", code.toUpperCase().trim())
+    .maybeSingle();
+
+  if (error || !data) {
+    return new Response("Invalid code", { status: 403 });
+  }
+
+  if (!Array.isArray(messages) || messages.length === 0) {
+    return new Response("Messages required", { status: 400 });
+  }
+
+  const userMessages = messages.map((m: { role: string; content: string }) => ({
+    role: m.role,
+    content: m.content,
+  }));
+
+  const res = await fetch("https://api.openai.com/v1/chat/completions", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${apiKey}`,
+    },
+    body: JSON.stringify({
+      model: OPENAI_MODEL,
+      max_tokens: MAX_TOKENS,
+      stream: true,
+      stream_options: { include_usage: true },
+      messages: [{ role: "system", content: SYSTEM_PROMPT }, ...userMessages],
+    }),
+  });
+
+  if (!res.ok) {
+    const text = await res.text();
+    return new Response(text, { status: res.status });
+  }
+
+  const stream = new TransformStream<Uint8Array, Uint8Array>();
+  const writer = stream.writable.getWriter();
+  const encoder = new TextEncoder();
+
+  (async () => {
+    const reader = res.body!.getReader();
+    const decoder = new TextDecoder();
+    let buffer = "";
+    let usage: { prompt_tokens: number; completion_tokens: number; total_tokens: number } | null = null;
+
+    try {
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split("\n");
+        buffer = lines.pop()!;
+
+        for (const line of lines) {
+          const trimmed = line.trim();
+          if (!trimmed || !trimmed.startsWith("data: ")) continue;
+          const payload = trimmed.slice(6);
+          if (payload === "[DONE]") {
+            await writer.write(encoder.encode("data: [DONE]\n\n"));
+            continue;
+          }
+          try {
+            const json = JSON.parse(payload);
+            if (json.usage) usage = json.usage;
+            const text = json.choices?.[0]?.delta?.content;
+            if (text) {
+              await writer.write(encoder.encode(`data: ${JSON.stringify({ text })}\n\n`));
+            }
+          } catch {}
+        }
+      }
+    } finally {
+      await writer.close();
+      if (usage) updateSessionTokens(code, usage);
+    }
+  })();
+
+  return new Response(stream.readable, {
+    headers: {
+      "Content-Type": "text/event-stream",
+      "Cache-Control": "no-cache",
+      Connection: "keep-alive",
+    },
+  });
 }

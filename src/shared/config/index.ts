@@ -6,3 +6,4 @@ export {
   TABLES,
   SESSION_TIMEOUT_MS,
 } from "./constants";
+export { SYSTEM_PROMPT } from "./system-prompt";

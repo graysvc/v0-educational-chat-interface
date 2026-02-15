@@ -2,10 +2,10 @@
 export const MAX_MESSAGES_PER_MONTH = 300;
 
 /** Length of the access code */
-export const CODE_LENGTH = 4;
+export const CODE_LENGTH = 6;
 
-/** Regex for valid code format (4 alphanumeric characters, case-insensitive) */
-export const CODE_FORMAT = /^[A-Za-z0-9]{4}$/;
+/** Regex for valid code format (6 alphanumeric characters, case-insensitive) */
+export const CODE_FORMAT = /^[A-Za-z0-9]{6}$/;
 
 /** A book access code */
 export interface Code {
