@@ -10,7 +10,7 @@ interface CodeGateProps {
 
 export function CodeGate({ onSubmit, error, isValidating }: CodeGateProps) {
   const [code, setCode] = useState("");
-  const isReady = code.trim().length === 6;
+  const isReady = code.trim().length >= 6;
 
   const handleSubmit = useCallback(
     (e: React.FormEvent) => {
@@ -36,8 +36,8 @@ export function CodeGate({ onSubmit, error, isValidating }: CodeGateProps) {
             type="text"
             value={code}
             onChange={(e) => setCode(e.target.value)}
-            maxLength={6}
-            placeholder="Ej: AB23C4"
+            maxLength={10}
+            placeholder="EMPEZAR"
             autoFocus
             className="h-14 w-full rounded-xl border-2 border-border bg-background px-6 text-center text-2xl uppercase tracking-[0.3em] text-foreground placeholder:text-muted-foreground/50 placeholder:tracking-[0.3em] transition-colors focus:border-primary focus:outline-none focus:ring-2 focus:ring-ring md:h-16 md:text-3xl"
             aria-label="Código de acceso"
