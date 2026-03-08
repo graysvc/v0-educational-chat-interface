@@ -3,6 +3,7 @@ import type { Message } from "@/entities/message";
 export interface StreamOptions {
   messages: Message[];
   code: string;
+  sessionId: string;
   onChunk: (text: string) => void;
   onComplete: () => void;
   onError: (error: string) => void;
@@ -15,6 +16,7 @@ export interface StreamOptions {
 export async function streamChat({
   messages,
   code,
+  sessionId,
   onChunk,
   onComplete,
   onError,
@@ -26,6 +28,7 @@ export async function streamChat({
       body: JSON.stringify({
         messages: messages.map((m) => ({ role: m.role, content: m.content })),
         code,
+        sessionId,
       }),
     });
 

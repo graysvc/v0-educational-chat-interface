@@ -32,3 +32,15 @@ export function clearStoredSession(): void {
 export function isStoredSessionExpired(stored: StoredSession): boolean {
   return Date.now() - stored.lastActiveAt > SESSION_TIMEOUT_MS;
 }
+
+const DEVICE_KEY = "guido-device";
+
+/** Get or create a persistent anonymous device ID (UUID) */
+export function getOrCreateDeviceId(): string {
+  let id = localStorage.getItem(DEVICE_KEY);
+  if (!id) {
+    id = crypto.randomUUID();
+    localStorage.setItem(DEVICE_KEY, id);
+  }
+  return id;
+}

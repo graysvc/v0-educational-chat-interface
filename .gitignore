@@ -36,3 +36,4 @@ next-env.d.ts
 # reference design (not part of build)
 /v0
 /clone
+.vivecode/

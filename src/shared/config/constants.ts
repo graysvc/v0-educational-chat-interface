@@ -19,10 +19,11 @@ export const TABLES = {
   METRICS_COGNITIVE: "metrics_cognitive",
   METRICS_SEMANTIC: "metrics_semantic",
   SURVEY_RESPONSES: "survey_responses",
+  SESSION_CLASSIFICATIONS: "session_classifications",
 } as const;
 
-/** Session timeout in milliseconds (12 hours) */
-export const SESSION_TIMEOUT_MS = 12 * 60 * 60 * 1000;
+/** Session timeout in milliseconds (40 minutes) */
+export const SESSION_TIMEOUT_MS = 40 * 60 * 1000;
 
 /** Max messages in context window sent to OpenAI */
 export const MAX_CONTEXT_MESSAGES = 8;

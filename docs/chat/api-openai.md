@@ -29,12 +29,14 @@ Browser (POST /api/chat)
   "messages": [
     { "role": "user", "content": "Hola, que es una variable?" }
   ],
-  "code": "AB232A"
+  "code": "AB232A",
+  "sessionId": "550e8400-e29b-41d4-a716-446655440000"
 }
 ```
 
 - `messages`: array de mensajes con `role` y `content`. Solo se envian mensajes de usuario y assistant (el system prompt se agrega server-side).
 - `code`: codigo de acceso. Se valida contra la tabla `codes` en Supabase antes de llamar a OpenAI (ver [Tabla codes](../database/tabla-codes.md)).
+- `sessionId`: UUID de la sesion activa. Se usa para atribuir los tokens de OpenAI a la sesion correcta. Se valida que pertenezca al `code` enviado (anti-spoofing).
 
 ## Que hace internamente
 
@@ -152,6 +154,8 @@ return new Response(stream.readable, {
 
 - API key faltante → `500 Missing API key`
 - Sin codigo de acceso → `401 Code required`
+- Sin session ID → `400 Session ID required`
 - Codigo invalido → `403 Invalid code`
+- Session no pertenece al codigo → `403 Session does not belong to code`
 - Mensajes vacios → `400 Messages required`
 - Error de OpenAI (rate limit, key invalida, etc.) → se reenvía el status y texto de OpenAI al browser

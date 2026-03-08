@@ -2,7 +2,7 @@
 
 ## Que es
 
-Tabla en Supabase que registra cada sesion de uso del chat. Una sesion empieza cuando el usuario ingresa un codigo valido y termina por inactividad (timeout de 12 horas). Cada sesion acumula contadores de mensajes y tokens.
+Tabla en Supabase que registra cada sesion de uso del chat. Una sesion empieza cuando el usuario ingresa un codigo valido y termina por inactividad (timeout de 40 minutos). Cada sesion acumula contadores de mensajes y tokens. Un `device_id` anonimo permite agrupar sesiones del mismo dispositivo.
 
 ## Schema
 
@@ -14,6 +14,7 @@ CREATE TABLE sessions (
   ended_at          TIMESTAMPTZ,
   last_active_at    TIMESTAMPTZ NOT NULL DEFAULT now(),
   device            TEXT NOT NULL DEFAULT 'desktop',
+  device_id         TEXT,
   message_count     INTEGER NOT NULL DEFAULT 0,
   prompt_tokens     INTEGER NOT NULL DEFAULT 0,
   completion_tokens INTEGER NOT NULL DEFAULT 0,
@@ -22,6 +23,9 @@ CREATE TABLE sessions (
 
 CREATE INDEX idx_sessions_code_last_active
   ON sessions (code, last_active_at DESC);
+
+CREATE INDEX idx_sessions_device_id
+  ON sessions (device_id);
 ```
 
 | Columna | Tipo | Descripcion |
@@ -32,6 +36,7 @@ CREATE INDEX idx_sessions_code_last_active
 | `ended_at` | `TIMESTAMPTZ` | No se usa activamente — se infiere como `last_active_at + 12h` |
 | `last_active_at` | `TIMESTAMPTZ` | Ultimo mensaje enviado. Base para calcular timeout |
 | `device` | `TEXT` | `"mobile"` o `"desktop"` (deteccion por `window.innerWidth < 768`) |
+| `device_id` | `TEXT` | UUID anonimo persistido en localStorage. Permite agrupar sesiones del mismo dispositivo. Nullable para sesiones pre-existentes |
 | `message_count` | `INTEGER` | Cantidad de mensajes del usuario en esta sesion |
 | `prompt_tokens` | `INTEGER` | Tokens acumulados enviados a OpenAI (input) |
 | `completion_tokens` | `INTEGER` | Tokens acumulados recibidos de OpenAI (output) |
@@ -63,6 +68,8 @@ CREATE POLICY "anon_update_sessions" ON sessions
 
 `idx_sessions_code_last_active` optimiza la query mas frecuente: buscar la sesion activa mas reciente para un codigo dado.
 
+`idx_sessions_device_id` optimiza queries de agrupacion por dispositivo (ej. "cuantas sesiones tuvo este usuario").
+
 ```sql
 -- Query que usa el indice (findActiveSession):
 SELECT * FROM sessions
@@ -81,9 +88,9 @@ Todas las operaciones viven en `features/session/api/session-api.ts`:
 |---|---|---|
 | `findActiveSession(code)` | SELECT con filtro de timeout | Init: buscar sesion para resumir |
 | `getSessionById(id)` | SELECT por ID | Init: verificar sesion de localStorage |
-| `createSession(code, device)` | INSERT | No hay sesion activa, crear nueva |
+| `createSession(code, device, deviceId)` | INSERT | No hay sesion activa, crear nueva |
 | `touchSession(id, count)` | UPDATE message_count + last_active_at | Cada mensaje del usuario |
-| `updateSessionTokens(code, usage)` | SELECT + UPDATE tokens | Cada respuesta de OpenAI |
+| `updateSessionTokens(sessionId, usage)` | RPC atomico (increment) | Cada respuesta de OpenAI |
 
 ## Conteo de tokens
 
@@ -106,16 +113,17 @@ Tener las tres columnas permite analizar:
 
 ```
 1. Usuario envia mensaje desde el browser
+   └── El cliente envia sessionId (UUID) en el body del request
 
 2. API route (app/api/chat/route.ts):
+   ├── Valida que sessionId pertenece al code (anti-spoofing)
    ├── Llama a OpenAI con stream: true, stream_options: { include_usage: true }
    ├── Parsea cada chunk del stream SSE
    ├── Si un chunk tiene json.usage → lo guarda en variable local
-   └── En finally block → llama updateSessionTokens(code, usage)
+   └── En finally block → llama updateSessionTokens(sessionId, usage)
 
 3. updateSessionTokens (features/session/api/session-api.ts):
-   ├── findActiveSession(code) → obtiene la sesion actual con sus tokens
-   └── UPDATE acumulando: prompt_tokens + new, completion_tokens + new, total_tokens + new
+   └── supabase.rpc("increment_session_tokens") → UPDATE atomico por session_id
 ```
 
 ### Detalles de implementacion
@@ -131,20 +139,19 @@ stream_options: { include_usage: true },
 if (json.usage) usage = json.usage;
 
 // Fire-and-forget en el finally:
-if (usage) updateSessionTokens(code, usage);
+if (usage) updateSessionTokens(sessionId, usage);
 ```
 
 **En session-api** (`features/session/api/session-api.ts`):
 
 ```ts
-export async function updateSessionTokens(code, usage) {
-  const session = await findActiveSession(code);  // obtiene tokens actuales
-  if (!session) return;
-  await supabase.from("sessions").update({
-    prompt_tokens:     session.prompt_tokens     + usage.prompt_tokens,
-    completion_tokens: session.completion_tokens  + usage.completion_tokens,
-    total_tokens:      session.total_tokens       + usage.total_tokens,
-  }).eq("id", session.id);
+export async function updateSessionTokens(sessionId, usage) {
+  await supabase.rpc("increment_session_tokens", {
+    p_session_id: sessionId,
+    p_prompt: usage.prompt_tokens,
+    p_completion: usage.completion_tokens,
+    p_total: usage.total_tokens,
+  });
 }
 ```
 
@@ -152,7 +159,7 @@ export async function updateSessionTokens(code, usage) {
 
 ```
 app/api/chat/route.ts          → extrae usage del stream, delega a feature   ✅
-features/session/api/session-api.ts → logica de negocio (find + accumulate)  ✅
+features/session/api/session-api.ts → RPC atomico (increment directo)        ✅
 app importa de features (hacia abajo)                                        ✅
 Ningun import cross-feature                                                  ✅
 ```
@@ -185,6 +192,7 @@ interface SessionRow {
   ended_at: string | null;
   last_active_at: string;
   device: string;
+  device_id: string | null;
   message_count: number;
   prompt_tokens: number;
   completion_tokens: number;
@@ -199,6 +207,7 @@ interface Session {
   endedAt: Date | null;
   lastActiveAt: Date;
   device: string;
+  deviceId: string | null;
   messageCount: number;
   promptTokens: number;
   completionTokens: number;
@@ -207,6 +216,34 @@ interface Session {
 ```
 
 El mapper `toSession()` en `features/session/model/session-mapper.ts` convierte `SessionRow` → `Session`.
+
+## Identificacion de usuarios recurrentes
+
+El campo `device_id` es un UUID anonimo generado con `crypto.randomUUID()` en la primera visita y persistido en `localStorage["guido-device"]`. No es un dato personal — es un identificador aleatorio que permite agrupar sesiones del mismo navegador/dispositivo.
+
+### Limitaciones
+
+- Si el usuario limpia localStorage o usa otro browser, se genera un nuevo `device_id`
+- No es fingerprinting — solo persiste mientras el storage exista
+
+### Queries de ejemplo
+
+```sql
+-- Sesiones por dispositivo (usuarios recurrentes)
+SELECT device_id, count(*) AS sessions, sum(message_count) AS total_messages
+FROM sessions
+WHERE device_id IS NOT NULL
+GROUP BY device_id
+ORDER BY sessions DESC;
+
+-- Usuarios unicos vs sesiones totales
+SELECT
+  count(DISTINCT device_id) AS unique_devices,
+  count(*) AS total_sessions,
+  round(count(*)::numeric / count(DISTINCT device_id), 1) AS avg_sessions_per_device
+FROM sessions
+WHERE device_id IS NOT NULL;
+```
 
 ## Archivos relacionados
 

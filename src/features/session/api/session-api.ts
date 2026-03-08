@@ -39,10 +39,11 @@ export async function getSessionById(
 export async function createSession(
   code: string,
   device: string,
+  deviceId: string,
 ): Promise<SessionRow | null> {
   const { data, error } = await supabase
     .from(TABLES.SESSIONS)
-    .insert({ code, device })
+    .insert({ code, device, device_id: deviceId })
     .select()
     .single();
 
@@ -64,19 +65,15 @@ export async function touchSession(
     .eq("id", sessionId);
 }
 
-/** Find active session by code and accumulate token usage */
+/** Atomically increment token counters for a session via Supabase RPC */
 export async function updateSessionTokens(
-  code: string,
+  sessionId: string,
   usage: { prompt_tokens: number; completion_tokens: number; total_tokens: number },
 ): Promise<void> {
-  const session = await findActiveSession(code);
-  if (!session) return;
-  await supabase
-    .from(TABLES.SESSIONS)
-    .update({
-      prompt_tokens: session.prompt_tokens + usage.prompt_tokens,
-      completion_tokens: session.completion_tokens + usage.completion_tokens,
-      total_tokens: session.total_tokens + usage.total_tokens,
-    })
-    .eq("id", session.id);
+  await supabase.rpc("increment_session_tokens", {
+    p_session_id: sessionId,
+    p_prompt: usage.prompt_tokens,
+    p_completion: usage.completion_tokens,
+    p_total: usage.total_tokens,
+  });
 }

@@ -8,6 +8,7 @@ export function toSession(row: SessionRow): Session {
     endedAt: row.ended_at ? new Date(row.ended_at) : null,
     lastActiveAt: new Date(row.last_active_at),
     device: row.device,
+    deviceId: row.device_id,
     messageCount: row.message_count,
     promptTokens: row.prompt_tokens,
     completionTokens: row.completion_tokens,

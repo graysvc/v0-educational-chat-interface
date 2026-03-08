@@ -9,3 +9,4 @@ export {
   MAX_CONTEXT_TOKENS,
 } from "./constants";
 export { SYSTEM_PROMPT } from "./system-prompt";
+export { CLASSIFICATION_PROMPT } from "./classification-prompt";

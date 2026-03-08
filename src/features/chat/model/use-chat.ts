@@ -12,7 +12,7 @@ export function useChat() {
   const [messages, setMessages] = useState<Message[]>([]);
   const messagesRef = useRef<Message[]>([]);
 
-  const sendMessage = useCallback(async (input: string) => {
+  const sendMessage = useCallback(async (input: string, sessionId: string) => {
     const userMsg = createMessage("user", input);
     const updatedMessages = [...messagesRef.current, userMsg];
     messagesRef.current = updatedMessages;
@@ -28,6 +28,7 @@ export function useChat() {
     await streamChat({
       messages: truncateHistory(updatedMessages),
       code,
+      sessionId,
       onChunk: (text) => {
         dispatch({ type: "CHUNK", text });
         const msgs = messagesRef.current;

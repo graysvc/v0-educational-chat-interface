@@ -1,6 +1,12 @@
+"use client";
+
+import { useState } from "react";
 import Link from "next/link";
+import { ContactModal } from "./contact-modal";
 
 export function SiteFooter() {
+  const [showContact, setShowContact] = useState(false);
+
   return (
     <footer className="border-t border-border px-6 pb-14 pt-20">
       <p className="text-center text-lg text-muted-foreground">
@@ -13,12 +19,13 @@ export function SiteFooter() {
         className="mt-8 flex items-center justify-center gap-4"
         aria-label="Enlaces del pie de página"
       >
-        <a
-          href="mailto:info@volverapreguntar.com"
+        <button
+          type="button"
+          onClick={() => setShowContact(true)}
           className="text-lg text-muted-foreground transition-colors hover:text-foreground"
         >
           Contacto
-        </a>
+        </button>
         <span className="text-muted-foreground" aria-hidden="true">
           {"·"}
         </span>
@@ -29,6 +36,8 @@ export function SiteFooter() {
           Privacidad
         </Link>
       </nav>
+
+      {showContact && <ContactModal onClose={() => setShowContact(false)} />}
     </footer>
   );
 }

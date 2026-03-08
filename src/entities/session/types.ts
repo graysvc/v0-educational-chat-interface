@@ -6,6 +6,7 @@ export interface SessionRow {
   ended_at: string | null;
   last_active_at: string;
   device: string;
+  device_id: string | null;
   message_count: number;
   prompt_tokens: number;
   completion_tokens: number;
@@ -20,6 +21,7 @@ export interface Session {
   endedAt: Date | null;
   lastActiveAt: Date;
   device: string;
+  deviceId: string | null;
   messageCount: number;
   promptTokens: number;
   completionTokens: number;

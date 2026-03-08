@@ -4,7 +4,7 @@ import { useReducer, useCallback, useEffect, useRef } from "react";
 import { createSession, touchSession, getSessionById } from "../api";
 import { toSession } from "./session-mapper";
 import { sessionReducer, initialSessionState } from "./session-reducer";
-import { readStoredSession, storeSession, touchStoredSession, clearStoredSession, isStoredSessionExpired } from "./session-storage";
+import { readStoredSession, storeSession, touchStoredSession, clearStoredSession, isStoredSessionExpired, getOrCreateDeviceId } from "./session-storage";
 
 export function useSession(code: string | null) {
   const [state, dispatch] = useReducer(sessionReducer, initialSessionState);
@@ -16,10 +16,11 @@ export function useSession(code: string | null) {
     initRef.current = true;
     dispatch({ type: "LOAD" });
     const device = typeof window !== "undefined" && window.innerWidth < 768 ? "mobile" : "desktop";
+    const deviceId = getOrCreateDeviceId();
     (async () => {
       const stored = readStoredSession();
       let row = stored && !isStoredSessionExpired(stored) ? await getSessionById(stored.id) : null;
-      if (!row) { clearStoredSession(); row = await createSession(code, device); }
+      if (!row) { clearStoredSession(); row = await createSession(code, device, deviceId); }
       if (row) { storeSession(row.id); dispatch({ type: "RESOLVED", session: toSession(row) }); }
     })();
   }, [code]);

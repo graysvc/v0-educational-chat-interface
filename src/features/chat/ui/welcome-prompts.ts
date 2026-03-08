@@ -4,8 +4,6 @@ import {
   BookOpen,
   Sparkles,
   PenLine,
-  HeartHandshake,
-  Lightbulb,
 } from "lucide-react";
 
 export interface FirstTimePrompt {
@@ -18,6 +16,7 @@ export interface FirstTimePrompt {
 export interface ReturningOption {
   icon: LucideIcon;
   label: string;
+  subtext: string;
   prefill: string;
 }
 
@@ -54,18 +53,15 @@ export const firstTimePrompts: FirstTimePrompt[] = [
 
 export const returningOptions: ReturningOption[] = [
   {
-    icon: BookOpen,
-    label: "Algo del libro",
-    prefill: "Estoy leyendo el libro y me gustaría entender\u2026 ",
+    icon: HelpCircle,
+    label: "Empezar con una pregunta simple",
+    subtext: "Empeza con algo facil.",
+    prefill: "Hola, quiero probar hacerte una pregunta simple para ver como funciona esto.",
   },
   {
-    icon: HeartHandshake,
-    label: "Algo personal / cotidiano",
-    prefill: "Hoy quiero hablar sobre algo personal: \u2026 ",
-  },
-  {
-    icon: Lightbulb,
-    label: "Algo que quiero aprender",
-    prefill: "Quiero aprender sobre\u2026 ",
+    icon: PenLine,
+    label: "Escribir libremente",
+    subtext: "Escribi lo que tengas en mente.",
+    prefill: "",
   },
 ];

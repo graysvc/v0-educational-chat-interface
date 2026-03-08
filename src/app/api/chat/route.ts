@@ -9,10 +9,14 @@ export async function POST(req: NextRequest) {
     return new Response("Missing API key", { status: 500 });
   }
 
-  const { messages, code } = await req.json();
+  const { messages, code, sessionId } = await req.json();
 
   if (!code || typeof code !== "string") {
     return new Response("Code required", { status: 401 });
+  }
+
+  if (!sessionId || typeof sessionId !== "string") {
+    return new Response("Session ID required", { status: 400 });
   }
 
   const { data, error } = await supabase
@@ -23,6 +27,16 @@ export async function POST(req: NextRequest) {
 
   if (error || !data) {
     return new Response("Invalid code", { status: 403 });
+  }
+
+  const { data: sessionRow } = await supabase
+    .from(TABLES.SESSIONS)
+    .select("code")
+    .eq("id", sessionId)
+    .maybeSingle();
+
+  if (!sessionRow || sessionRow.code !== code.toUpperCase().trim()) {
+    return new Response("Session does not belong to code", { status: 403 });
   }
 
   if (!Array.isArray(messages) || messages.length === 0) {
@@ -92,7 +106,7 @@ export async function POST(req: NextRequest) {
       }
     } finally {
       await writer.close();
-      if (usage) updateSessionTokens(code, usage);
+      if (usage) updateSessionTokens(sessionId, usage);
     }
   })();
 
