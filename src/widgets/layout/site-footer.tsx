@@ -10,9 +10,7 @@ export function SiteFooter() {
   return (
     <footer className="border-t border-border px-6 pb-14 pt-20">
       <p className="text-center text-lg text-muted-foreground">
-        {"Ya somos más de "}
-        <span className="font-bold text-foreground">{"3.482"}</span>
-        {" personas aprendiendo a preguntar mejor."}
+{"Cada vez más personas están aprendiendo a preguntar mejor."}
       </p>
 
       <nav
@@ -34,6 +32,15 @@ export function SiteFooter() {
           className="text-lg text-muted-foreground transition-colors hover:text-foreground"
         >
           Privacidad
+        </Link>
+        <span className="text-muted-foreground" aria-hidden="true">
+          {"·"}
+        </span>
+        <Link
+          href="/terminos"
+          className="text-lg text-muted-foreground transition-colors hover:text-foreground"
+        >
+          Términos
         </Link>
       </nav>
 

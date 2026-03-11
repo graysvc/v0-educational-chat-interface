@@ -11,15 +11,15 @@ interface MessageProps {
 
 const mdComponents: Components = {
   p: ({ children }) => (
-    <p className="mb-2 text-base leading-[1.75] last:mb-0 md:text-lg">{children}</p>
+    <p className="mb-3 text-base leading-[1.75] last:mb-0 md:text-lg">{children}</p>
   ),
   strong: ({ children }) => <strong className="font-semibold">{children}</strong>,
   em: ({ children }) => <em className="italic">{children}</em>,
   ol: ({ children }) => (
-    <ol className="mb-2 list-decimal space-y-1 pl-5 last:mb-0">{children}</ol>
+    <ol className="mb-3 list-decimal space-y-2 pl-5 last:mb-0">{children}</ol>
   ),
   ul: ({ children }) => (
-    <ul className="mb-2 list-disc space-y-1 pl-5 last:mb-0">{children}</ul>
+    <ul className="mb-3 list-disc space-y-2 pl-5 last:mb-0">{children}</ul>
   ),
   li: ({ children }) => (
     <li className="text-base leading-[1.75] md:text-lg">{children}</li>

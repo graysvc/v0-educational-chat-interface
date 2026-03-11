@@ -65,6 +65,7 @@ export function ChatLayout() {
     sendMessage(input, session.id);
     trackMessage();
     setInput("");
+    inputRef.current?.focus();
   }, [input, isLoading, hasStarted, sendMessage, markAsSeen, trackMessage, session]);
 
   const handleSelectPrompt = useCallback((prompt: string) => {
