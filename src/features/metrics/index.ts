@@ -9,4 +9,4 @@ export type {
   SemanticMetrics,
   SessionMetrics,
 } from "./model";
-export { sendMetrics, classifySession } from "./api";
+export { sendMetrics, classifySession, classifySessionBeacon } from "./api";

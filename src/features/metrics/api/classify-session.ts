@@ -13,3 +13,16 @@ export function classifySession(
     body: JSON.stringify({ messages: payload, session_id: sessionId }),
   }).catch(() => {});
 }
+
+/** Beacon variant for pagehide — guaranteed to be enqueued before unload. */
+export function classifySessionBeacon(
+  messages: Message[],
+  sessionId: string,
+): void {
+  const payload = messages.map((m) => ({ role: m.role, content: m.content }));
+  const blob = new Blob(
+    [JSON.stringify({ messages: payload, session_id: sessionId })],
+    { type: "application/json" },
+  );
+  navigator.sendBeacon("/api/session-end", blob);
+}

@@ -1,2 +1,2 @@
 export { sendMetrics } from "./send-metrics";
-export { classifySession } from "./classify-session";
+export { classifySession, classifySessionBeacon } from "./classify-session";

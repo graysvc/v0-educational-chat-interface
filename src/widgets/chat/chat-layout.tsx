@@ -5,7 +5,7 @@ import { toast } from "sonner";
 import { useCodeGate, CodeGate } from "@/features/code-gate";
 import { ChatInput, Welcome, useChat, truncateHistory } from "@/features/chat";
 import { useSession } from "@/features/session";
-import { classifySession } from "@/features/metrics";
+import { classifySession, classifySessionBeacon } from "@/features/metrics";
 import { ChatHeader } from "./chat-header";
 import { ChatMessages } from "./chat-messages";
 
@@ -19,6 +19,8 @@ export function ChatLayout() {
   const { session, isExpired, trackMessage } = useSession(code);
   const prevSessionIdRef = useRef<string | null>(null);
   const lastSessionIdRef = useRef<string | null>(null);
+  const classifiedRef = useRef(false);
+  const messagesRef = useRef(messages);
   const inputValueRef = useRef("");
   const [mounted, setMounted] = useState(false);
   const [input, setInput] = useState("");
@@ -27,6 +29,7 @@ export function ChatLayout() {
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const isLoading = chatState.status === "sending" || chatState.status === "streaming";
   inputValueRef.current = input;
+  messagesRef.current = messages;
 
   useEffect(() => {
     setMounted(true);
@@ -42,11 +45,13 @@ export function ChatLayout() {
     if (prevSessionIdRef.current && prevSessionIdRef.current !== session.id) { reset(); setHasStarted(false); }
     prevSessionIdRef.current = session.id;
     lastSessionIdRef.current = session.id;
+    classifiedRef.current = false;
   }, [session, reset]);
 
   useEffect(() => {
     if (!isExpired) return;
-    if (messages.length > 0 && lastSessionIdRef.current) {
+    if (messages.length > 0 && lastSessionIdRef.current && !classifiedRef.current) {
+      classifiedRef.current = true;
       classifySession(truncateHistory(messages), lastSessionIdRef.current);
     }
     const v = inputValueRef.current;
@@ -54,6 +59,20 @@ export function ChatLayout() {
     lock();
     toast("Tu sesión expiró. Podés volver a comenzar.");
   }, [isExpired, lock, messages]);
+
+  useEffect(() => {
+    const onPageHide = () => {
+      if (classifiedRef.current) return;
+      const msgs = messagesRef.current;
+      const sid = lastSessionIdRef.current;
+      if (msgs.length > 0 && sid) {
+        classifiedRef.current = true;
+        classifySessionBeacon(truncateHistory(msgs), sid);
+      }
+    };
+    window.addEventListener("pagehide", onPageHide);
+    return () => window.removeEventListener("pagehide", onPageHide);
+  }, []);
 
   const markAsSeen = useCallback(() => {
     try { localStorage.setItem(WELCOME_KEY, "true"); } catch {}
