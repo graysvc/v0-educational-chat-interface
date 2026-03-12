@@ -39,7 +39,7 @@ export async function POST(req: Request) {
   const { error } = await resend.emails.send({
     from: "Volver a Preguntar <onboarding@resend.dev>",
     to: EMAIL_TO,
-    subject: `Nuevo mensaje de contacto — ${name.trim()}`,
+    subject: `VAP contacto form — ${name.trim()}`,
     replyTo: email.trim(),
     text: `Nombre: ${name.trim()}\nEmail: ${email.trim()}\n\nMensaje:\n${message.trim()}`,
   });
