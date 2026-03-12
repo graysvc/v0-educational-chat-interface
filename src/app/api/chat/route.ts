@@ -1,7 +1,8 @@
 import { NextRequest } from "next/server";
 import { OPENAI_MODEL, MAX_TOKENS, SYSTEM_PROMPT, TABLES } from "@/shared/config";
 import { supabase } from "@/shared/api";
-import { updateSessionTokens } from "@/features/session/api";
+import { updateSessionTokens, updateSignalCounters } from "@/features/session/api";
+import { detectSignals } from "@/shared/lib/signals";
 
 export async function POST(req: NextRequest) {
   const apiKey = process.env.OPENAI_API_KEY;
@@ -42,6 +43,9 @@ export async function POST(req: NextRequest) {
   if (!Array.isArray(messages) || messages.length === 0) {
     return new Response("Messages required", { status: 400 });
   }
+
+  const lastUserMsg = [...messages].reverse().find((m: { role: string }) => m.role === "user");
+  const signals = lastUserMsg ? detectSignals(lastUserMsg.content) : null;
 
   const userMessages = messages.map((m: { role: string; content: string }) => ({
     role: m.role,
@@ -107,6 +111,7 @@ export async function POST(req: NextRequest) {
     } finally {
       await writer.close();
       if (usage) updateSessionTokens(sessionId, usage);
+      if (signals) updateSignalCounters(sessionId, signals);
     }
   })();
 

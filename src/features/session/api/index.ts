@@ -5,3 +5,4 @@ export {
   touchSession,
   updateSessionTokens,
 } from "./session-api";
+export { updateSignalCounters } from "./update-signal-counters";
